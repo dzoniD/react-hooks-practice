@@ -7,6 +7,9 @@ const Search = React.memo(props => {
   const { onLoadIngredients } = props;
   const [enteredFilter,setEnteredFilter] = useState('');
 
+  
+  // useEffect without second argument acts like componentDidUpdate,
+  // useEffect with empty array ([]) as second argument acts like componentDidMount
   useEffect(() => {
     const query = enteredFilter.length === 0 ? '' : `?orderBy="title"&equalTo="${enteredFilter}"`;
     fetch('https://react-hooks-practice-e3338.firebaseio.com/ingredients.json' + query).then(
@@ -20,7 +23,7 @@ const Search = React.memo(props => {
           amount: responseData[key].amount
         });
       }
-      // onLoadIngredients(loadedIngredients);
+      onLoadIngredients(loadedIngredients);
     });
   },[enteredFilter, onLoadIngredients]);
 

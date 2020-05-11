@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useCallback } from 'react';
 
 import IngredientList from './IngredientList';
 import IngredientForm from './IngredientForm';
@@ -7,27 +7,9 @@ import Search from './Search';
 const Ingredients = () => {
   const [userIngredients, setUserIngredients] = useState([]);
 
-  // useEffect without second argument acts like componentDidUpdate,
-  // useEffect with empty array ([]) as second argument acts like componentDidMount
-  useEffect(() => {
-    fetch('https://react-hooks-practice-e3338.firebaseio.com/ingredients.json').then(
-      response => response.json()
-    ).then(responseData => {
-      const loadedIngredients = [];
-      for( let key in responseData ){
-        loadedIngredients.push({
-          id:  key,
-          title: responseData[key].title,
-          amount: responseData[key].amount
-        });
-      }
-      setUserIngredients(loadedIngredients);
-    });
-  }, [])
-
-  const filteredIngredientsHandler = (filteredIngredients) => {
+  const filteredIngredientsHandler = useCallback((filteredIngredients) => {
     setUserIngredients(filteredIngredients)
-  }
+  },[]);
 
   const addIngredientHandler = ingredient => {
     fetch('https://react-hooks-practice-e3338.firebaseio.com/ingredients.json', {
