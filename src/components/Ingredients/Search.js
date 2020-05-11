@@ -11,7 +11,7 @@ const Search = React.memo(props => {
   // useEffect without second argument acts like componentDidUpdate,
   // useEffect with empty array ([]) as second argument acts like componentDidMount
   useEffect(() => {
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       // Closure! Bcuz of closure enteredFilter value here is the value user entered when we set this timer, not the value user entered after timer expired
       // so enteredFilter is the old value
       // inputRef is the current value entered
@@ -31,7 +31,12 @@ const Search = React.memo(props => {
         onLoadIngredients(loadedIngredients);
       });
       }      
-    }, 500);  
+    }, 500);
+    // useEffect can return function and only function aka clean up function. It is a function than will run right before the next time useEffect is run.
+    // if we have empty array [] as second argument of useEffect the cleanup function runs when the component gets unmounted !!!
+    return () => {
+      clearTimeout(timer);
+    }
   },[enteredFilter, onLoadIngredients, inputRef]);
 
   return (
