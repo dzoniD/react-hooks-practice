@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-
+import useHttp from '../../hooks/http';
 import Card from '../UI/Card';
+import ErrorModal from '../UI/ErrorModal'
 import './Search.css';
+
+
 const Search = React.memo(props => {
   const { onLoadIngredients } = props;
   const [enteredFilter,setEnteredFilter] = useState('');
-  const inputRef = useRef()
+  const inputRef = useRef();
+  const {loading, data, error, sendRequest, clear} = useHttp();
 
   
   // useEffect without second argument acts like componentDidUpdate,
@@ -17,19 +21,7 @@ const Search = React.memo(props => {
       // inputRef is the current value entered
       if(enteredFilter === inputRef.current.value){
         const query = enteredFilter.length === 0 ? '' : `?orderBy="title"&equalTo="${enteredFilter}"`;
-      fetch('https://react-hooks-practice-e3338.firebaseio.com/ingredients.json' + query).then(
-        response => response.json()
-      ).then(responseData => {
-        const loadedIngredients = [];
-        for( let key in responseData ){
-          loadedIngredients.push({
-            id:  key,
-            title: responseData[key].title,
-            amount: responseData[key].amount
-          });
-        }
-        onLoadIngredients(loadedIngredients);
-      });
+        sendRequest('https://react-hooks-practice-e3338.firebaseio.com/ingredients.json' + query, 'GET');      
       }      
     }, 500);
     // useEffect can return function and only function aka clean up function. It is a function than will run right before the next time useEffect is run.
@@ -37,13 +29,30 @@ const Search = React.memo(props => {
     return () => {
       clearTimeout(timer);
     }
-  },[enteredFilter, onLoadIngredients, inputRef]);
+  },[enteredFilter,sendRequest, inputRef]);
+
+  useEffect(() => {
+    if(!loading && !error && data){
+      console.log(data);
+      const loadedIngredients = [];
+        for( let key in data ){
+          loadedIngredients.push({
+            id:  key,
+            title: data[key].title,
+            amount: data[key].amount
+          });
+        }
+        onLoadIngredients(loadedIngredients);
+    }
+  },[data, loading, error, onLoadIngredients]);
 
   return (
     <section className="search">
+      {error && <ErrorModal onClose={clear}>{error}</ErrorModal>}
       <Card>
         <div className="search-input">
           <label>Filter by Title</label>
+          {loading && <span>Loading...</span>}
           <input ref={inputRef} value={enteredFilter} onChange={event => setEnteredFilter(event.target.value)} type="text" />
         </div>
       </Card>

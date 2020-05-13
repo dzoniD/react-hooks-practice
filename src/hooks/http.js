@@ -1,5 +1,13 @@
 import { useReducer, useCallback } from 'react';
 
+const initialState = {
+    loading: false,
+    error: null,
+    data: null,
+    extra: null,
+    indetifier: null
+}
+
 const httpReducer = (currHttpState, action) => {
     switch (action.type) {
         case 'SEND':
@@ -20,7 +28,7 @@ const httpReducer = (currHttpState, action) => {
         case 'ERROR':
             return { loading: false, error: action.errorMsg };
         case 'CLEAR':
-            return { ...currHttpState, error: null }
+            return initialState;
         default:
             throw new Error('Should not be reached!')
     }
@@ -28,13 +36,9 @@ const httpReducer = (currHttpState, action) => {
 }
 
 const useHttp = () => {
-    const [httpState, dispatchHttp] = useReducer(httpReducer, {
-        loading: false,
-        error: null,
-        data: null,
-        extra: null,
-        indetifier: null
-    });
+    const [httpState, dispatchHttp] = useReducer(httpReducer, initialState );
+
+    const clear = useCallback(() => dispatchHttp({ type: 'CLEAR' }),[]);
 
     const sendRequest = useCallback((url, method, body, reqExtra, reqIndentifier) => {
         // 'https://react-hooks-practice-e3338.firebaseio.com/ingredients/${id}.json'
@@ -61,7 +65,8 @@ const useHttp = () => {
         data: httpState.data,
         sendRequest: sendRequest,
         reqExtra: httpState.extra,
-        reqIndentifier: httpState.indetifier
+        reqIndentifier: httpState.indetifier,
+        clear:clear
     };
 
 };
