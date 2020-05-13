@@ -1,4 +1,4 @@
-import React, {  useReducer, useCallback,useMemo } from 'react';
+import React, {  useReducer,useEffect, useCallback,useMemo } from 'react';
 
 import IngredientList from './IngredientList';
 import IngredientForm from './IngredientForm';
@@ -21,12 +21,25 @@ const ingredientReducer = (currentIngredients, action) => {
 
 const Ingredients = () => {
   const [userIngredients, dispatch] = useReducer(ingredientReducer, []);
-  const {loading, error, data, sendRequest} = useHttp();
+  const {loading, error, data, sendRequest,reqExtra,reqIndentifier} = useHttp();
 
   // const [ httpState, dispatchHttp ] = useReducer(httpReducer, {loading:false, error:null});
   // const [userIngredients, setUserIngredients] = useState([]);
   // const [isLoading, setIsLoading] = useState(false);
   // const [error, setError] = useState();
+
+  useEffect(() => {
+    if(!loading && !error && reqIndentifier === 'REMOVE_INGREDIENT'){
+      dispatch({type:'DELETE', id: reqExtra})
+    } else if(!loading && !error && reqIndentifier === 'ADD_INGREDIENT') {
+      dispatch(
+             {
+               type:'ADD',
+               ingredient: {id: data.name, ...reqExtra } 
+             }
+           )
+    }
+  },[data,reqExtra,reqIndentifier,loading,error])
 
   const filteredIngredientsHandler = useCallback((filteredIngredients) => {
     // setUserIngredients(filteredIngredients)
@@ -39,6 +52,12 @@ const Ingredients = () => {
   }, []);
 
   const addIngredientHandler = useCallback(ingredient => {
+    sendRequest(
+      'https://react-hooks-practice-e3338.firebaseio.com/ingredients.json',
+      'POST',
+      JSON.stringify(ingredient),
+      ingredient,
+      'ADD_INGREDIENT')
     // setIsLoading(true);
     // dispatchHttp({type: 'SEND'});
     // fetch('https://react-hooks-practice-e3338.firebaseio.com/ingredients.json', {
@@ -67,7 +86,7 @@ const Ingredients = () => {
   }, []);
 
   const removeIngredientHandler = useCallback((id) => {
-    sendRequest(`https://react-hooks-practice-e3338.firebaseio.com/ingredients/${id}.json`,'DELETE')
+    sendRequest(`https://react-hooks-practice-e3338.firebaseio.com/ingredients/${id}.json`,'DELETE',null,id,'REMOVE_INGREDIENT')
   }, [sendRequest]);
 
   const clearError =useCallback(() => {
@@ -83,7 +102,7 @@ const Ingredients = () => {
       onRemoveItem={removeIngredientHandler} />
       );
   },[userIngredients,removeIngredientHandler]);
-  console.log(loading)
+  
   return (
     <div className="App">
       {error && <ErrorModal onClose={clearError}>{error}</ErrorModal>}
